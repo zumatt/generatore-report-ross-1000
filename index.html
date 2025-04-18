@@ -583,10 +583,10 @@
                             xml += `        <sesso>${arrivo.sesso}</sesso>\n`;
                             xml += `        <cittadinanza>${arrivo.cittadinanza}</cittadinanza>\n`;
                             xml += `        <statoresidenza>${arrivo.statoresidenza}</statoresidenza>\n`;
-                            xml += `        <luogoresidenza>${arrivo.luogoresidenza}</luogoresidenza>\n`;
+                            xml += `        <luogoresidenza>${arrivo.luogoresidenza.trim() || ""}</luogoresidenza>\n`;
                             xml += `        <datanascita>${arrivo.dataNascita}</datanascita>\n`;
                             xml += `        <statonascita>${arrivo.statoNascita}</statonascita>\n`;
-                            xml += `        <comunenascita>${arrivo.comuneNascita}</comunenascita>\n`;
+                            xml += `        <comunenascita>${arrivo.comuneNascita.trim() || ""}</comunenascita>\n`;
                             xml += `        <tipoturismo>${arrivo.tipoturismo}</tipoturismo>\n`;
                             xml += `        <mezzotrasporto>${arrivo.mezzotrasporto}</mezzotrasporto>\n`;
                             xml += `        <canaleprenotazione>${arrivo.canaleprenotazione}</canaleprenotazione>\n`;
@@ -635,22 +635,10 @@
         // Funzione per assegnare gli ID capo ai membri del gruppo
         function assignGroupLeaders(data) {
             try {
-                // Prima identifica tutti i capi gruppo
-                const capiGruppo = data.filter(item => item.isCapoGruppo);
-                
-                // Poi, per ogni membro del gruppo, trova il capo corrispondente
-                // (per semplicità assegniamo in base alla stessa data di arrivo e partenza)
                 data.forEach(item => {
-                    if (item.isComponenteGruppo) {
-                        // Cerca un capo con la stessa data di arrivo e partenza
-                        const capo = capiGruppo.find(
-                            c => c.dataArrivo === item.dataArrivo && 
-                                 c.dataPartenza === item.dataPartenza
-                        );
-                        
-                        if (capo) {
-                            item.idcapo = capo.idswh;
-                        }
+                    // Se è un capo gruppo (16, 17, 18), usa il suo idswh come idcapo
+                    if (['16', '17', '18'].includes(item.tipoAlloggiato)) {
+                        item.idcapo = item.idswh;
                     }
                 });
             } catch (error) {
