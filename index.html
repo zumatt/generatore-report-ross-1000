@@ -281,7 +281,7 @@
             
             <div class="form-group">
                 <label for="periodo">Periodo:</label>
-                <input type="month" id="periodo" value="2025-01" required>
+                <input type="month" id="periodo" required>
             </div>
             
             <div class="form-group">
@@ -349,6 +349,12 @@
         const downloadBtn = document.getElementById('download-btn');
         const messageContainer = document.getElementById('message-container');
         
+        // Imposta il periodo al mese corrente
+        const today = new Date();
+        const currentMonth = (today.getMonth() + 1).toString().padStart(2, '0');
+        const currentYear = today.getFullYear();
+        document.getElementById('periodo').value = `${currentYear}-${currentMonth}`;
+        
         // Funzione per ottenere il numero di giorni in un mese
         function getDaysInMonth(year, month) {
             return new Date(year, month, 0).getDate();
@@ -406,9 +412,14 @@
                 const birthMonth = parseInt(birthParts[1]);
                 const birthDay = parseInt(birthParts[0]);
                 const dataNascitaYMD = formatDate(birthYear, birthMonth, birthDay);
+
+                //Numero caratteri nome + cognome per generare codice univoco
+                const nomeLength = nome.length;
+                const cognomeLength = cognome.length;
+                const completeNameLength = nomeLength + cognomeLength;
                 
                 // Genera un ID univoco basato su cognome, nome, data di nascita e giorno di arrivo
-                const idswh = `${cognome}_${nome}_${dataNascitaYMD}_${dataArrivoYMD}`;
+                const idswh = `${dataNascitaYMD * nomeLength}_${dataArrivoYMD * cognomeLength}_${giorniPermanenza * completeNameLength}`;
                 
                 // Canale di prenotazione default
                 const canalePrenotazione = document.getElementById('canale-prenotazione').value;
