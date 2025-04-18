@@ -99,6 +99,7 @@
             cursor: pointer;
             transition: background-color 0.3s;
             margin-bottom: 20px;
+            margin-top: 20px;
         }
         
         .dropzone:hover, .dropzone.dragover {
@@ -133,6 +134,7 @@
         }
         
         .file-list {
+            padding: 10px;
             margin-top: 10px;
             max-height: 300px;
             overflow-y: auto;
@@ -264,6 +266,19 @@
                 width: 100%;
             }
         }
+        
+        .date-range {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .date-input {
+            flex: 1;
+        }
+        
+        .date-input input {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -279,9 +294,15 @@
             
             <input type="hidden" id="prodotto" value="OpenRoss">
             
-            <div class="form-group">
-                <label for="periodo">Periodo:</label>
-                <input type="month" id="periodo" required>
+            <div class="form-group date-range">
+                <div class="date-input">
+                    <label for="periodo-inizio">Data inizio:</label>
+                    <input type="date" id="periodo-inizio" required>
+                </div>
+                <div class="date-input">
+                    <label for="periodo-fine">Data fine:</label>
+                    <input type="date" id="periodo-fine" required>
+                </div>
             </div>
             
             <div class="form-group">
@@ -325,11 +346,12 @@
         </div>
     </div>
     
+    <div id="message-container"></div>
+    
     <button id="generate-btn" class="primary-btn">Genera XML</button>
     
     <div class="result-container hidden" id="result-container">
         <h2>XML Generato</h2>
-        <div id="message-container"></div>
         <pre id="xml-preview"></pre>
         <button class="download-btn" id="download-btn">Scarica XML</button>
     </div>
@@ -349,11 +371,13 @@
         const downloadBtn = document.getElementById('download-btn');
         const messageContainer = document.getElementById('message-container');
         
-        // Imposta il periodo al mese corrente
+        // Imposta le date di default (inizio e fine mese corrente)
         const today = new Date();
-        const currentMonth = (today.getMonth() + 1).toString().padStart(2, '0');
-        const currentYear = today.getFullYear();
-        document.getElementById('periodo').value = `${currentYear}-${currentMonth}`;
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+        document.getElementById('periodo-inizio').value = firstDayOfMonth.toISOString().split('T')[0];
+        document.getElementById('periodo-fine').value = lastDayOfMonth.toISOString().split('T')[0];
         
         // Funzione per ottenere il numero di giorni in un mese
         function getDaysInMonth(year, month) {
@@ -492,31 +516,23 @@
             return grouped;
         }
         
-        // Funzione per filtrare i dati in base al mese e anno selezionati
-        function filterDataByMonth(data, year, month) {
+        // Funzione per filtrare i dati in base al periodo selezionato
+        function filterDataByDateRange(data, startDate, endDate) {
             return data.filter(item => {
-                // Verifica se l'arrivo o la partenza sono nel mese selezionato
-                // o se il soggiorno include il mese selezionato
-                
-                const arrYear = parseInt(item.dataArrivo.substring(0, 4));
-                const arrMonth = parseInt(item.dataArrivo.substring(4, 6));
-                
-                const depYear = parseInt(item.dataPartenza.substring(0, 4));
-                const depMonth = parseInt(item.dataPartenza.substring(4, 6));
-                
-                // Caso 1: L'arrivo è nel mese selezionato
-                const arrivoNelMese = (arrYear === parseInt(year) && arrMonth === parseInt(month));
-                
-                // Caso 2: La partenza è nel mese selezionato
-                const partenzaNelMese = (depYear === parseInt(year) && depMonth === parseInt(month));
-                
-                // Caso 3: Il soggiorno include il mese selezionato
-                const includeIlMese = (
-                    (arrYear < parseInt(year) || (arrYear === parseInt(year) && arrMonth <= parseInt(month))) &&
-                    (depYear > parseInt(year) || (depYear === parseInt(year) && depMonth >= parseInt(month)))
+                const arrDate = new Date(
+                    parseInt(item.dataArrivo.substring(0, 4)),
+                    parseInt(item.dataArrivo.substring(4, 6)) - 1,
+                    parseInt(item.dataArrivo.substring(6, 8))
                 );
                 
-                return arrivoNelMese || partenzaNelMese || includeIlMese;
+                const depDate = new Date(
+                    parseInt(item.dataPartenza.substring(0, 4)),
+                    parseInt(item.dataPartenza.substring(4, 6)) - 1,
+                    parseInt(item.dataPartenza.substring(6, 8))
+                );
+                
+                // Verifica se il soggiorno si sovrappone con il periodo selezionato
+                return (arrDate <= endDate && depDate >= startDate);
             });
         }
         
@@ -525,12 +541,15 @@
             try {
                 const codiceStruttura = document.getElementById('codice-struttura').value;
                 const prodotto = document.getElementById('prodotto').value;
-                const periodo = document.getElementById('periodo').value;
-                const camereDisponibili = parseInt(document.getElementById('camere-disponibili').value);
-                const lettiDisponibili = parseInt(document.getElementById('letti-disponibili').value);
+                const startDate = new Date(document.getElementById('periodo-inizio').value);
+                const endDate = new Date(document.getElementById('periodo-fine').value);
+                const camereDisponibili = document.getElementById('camere-disponibili').value;
+                const lettiDisponibili = document.getElementById('letti-disponibili').value;
                 
-                // Estrai mese e anno dal periodo
-                const [anno, mese] = periodo.split('-');
+                if (startDate > endDate) {
+                    showMessage("La data di inizio deve essere precedente alla data di fine", "error");
+                    return;
+                }
                 
                 if (!codiceStruttura || !codiceStruttura.match(/^[A-Za-z][0-9]{5}$/)) {
                     showMessage("Il codice struttura deve essere nel formato A00000", "error");
@@ -542,14 +561,14 @@
                     return;
                 }
                 
-                // Filtra i dati per il mese selezionato
-                const filteredData = filterDataByMonth(parsedData, anno, mese);
+                // Filtra i dati per il periodo selezionato
+                const filteredData = filterDataByDateRange(parsedData, startDate, endDate);
                 
                 // Assegna gli ID capo ai membri del gruppo
                 assignGroupLeaders(filteredData);
                 
-                // Numero di giorni nel mese
-                const daysInMonth = getDaysInMonth(parseInt(anno), parseInt(mese));
+                // Calcola il numero di giorni nel periodo
+                const daysInPeriod = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
                 
                 // Inizia a costruire l'XML
                 let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
@@ -561,18 +580,24 @@
                 const arriviByDate = groupDataByArrivalDate(filteredData);
                 const partenzeByDate = groupDataByDepartureDate(filteredData);
                 
-                // Calcola l'occupazione delle camere per ogni giorno del mese
-                const dailyOccupancy = calculateDailyOccupancy(filteredData, anno, mese, daysInMonth);
+                // Calcola l'occupazione delle camere per ogni giorno del periodo
+                const dailyOccupancy = calculateDailyOccupancy(filteredData, startDate, endDate, daysInPeriod);
                 
-                // Genera un movimento per ogni giorno del mese
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const currentDate = formatDate(anno, mese, day);
+                // Genera un movimento per ogni giorno del periodo
+                for (let i = 0; i < daysInPeriod; i++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(startDate.getDate() + i);
+                    const formattedDate = formatDate(
+                        currentDate.getFullYear(),
+                        currentDate.getMonth() + 1,
+                        currentDate.getDate()
+                    );
                     
                     // Ottieni l'occupazione per questo giorno
-                    const occupancy = dailyOccupancy[currentDate] || { camereOccupate: 0, ospiti: 0 };
+                    const occupancy = dailyOccupancy[formattedDate] || { camereOccupate: 0, ospiti: 0 };
                     
                     xml += `  <movimento>\n`;
-                    xml += `    <data>${currentDate}</data>\n`;
+                    xml += `    <data>${formattedDate}</data>\n`;
                     xml += `    <struttura>\n`;
                     xml += `      <apertura>SI</apertura>\n`;
                     xml += `      <camereoccupate>${occupancy.camereOccupate}</camereoccupate>\n`;
@@ -581,10 +606,10 @@
                     xml += `    </struttura>\n`;
                     
                     // Aggiungi gli arrivi per questa data se ce ne sono
-                    if (arriviByDate[currentDate] && arriviByDate[currentDate].arrivi.length > 0) {
+                    if (arriviByDate[formattedDate] && arriviByDate[formattedDate].arrivi.length > 0) {
                         xml += `    <arrivi>\n`;
                         
-                        arriviByDate[currentDate].arrivi.forEach(arrivo => {
+                        arriviByDate[formattedDate].arrivi.forEach(arrivo => {
                             xml += `      <arrivo>\n`;
                             xml += `        <idswh>${arrivo.idswh}</idswh>\n`;
                             xml += `        <tipoalloggiato>${arrivo.tipoAlloggiato}</tipoalloggiato>\n`;
@@ -611,10 +636,10 @@
                     }
                     
                     // Aggiungi le partenze per questa data se ce ne sono
-                    if (partenzeByDate[currentDate] && partenzeByDate[currentDate].partenze.length > 0) {
+                    if (partenzeByDate[formattedDate] && partenzeByDate[formattedDate].partenze.length > 0) {
                         xml += `    <partenze>\n`;
                         
-                        partenzeByDate[currentDate].partenze.forEach(partenza => {
+                        partenzeByDate[formattedDate].partenze.forEach(partenza => {
                             xml += `      <partenza>\n`;
                             xml += `        <idswh>${partenza.idswh}</idswh>\n`;
                             xml += `        <tipoalloggiato>${partenza.tipoalloggiato}</tipoalloggiato>\n`;
@@ -658,65 +683,88 @@
         }
         
         // Funzione per calcolare l'occupazione giornaliera
-        function calculateDailyOccupancy(data, anno, mese, daysInMonth) {
+        function calculateDailyOccupancy(data, startDate, endDate, daysInPeriod) {
             try {
                 const occupancy = {};
                 
-                // Inizializza l'occupazione per ogni giorno del mese
-                for (let day = 1; day <= daysInMonth; day++) {
-                    const date = formatDate(anno, mese, day);
-                    occupancy[date] = { camereOccupate: 0, ospiti: 0 };
+                // Inizializza l'occupazione per ogni giorno del periodo
+                for (let i = 0; i < daysInPeriod; i++) {
+                    const currentDate = new Date(startDate);
+                    currentDate.setDate(startDate.getDate() + i);
+                    const formattedDate = formatDate(
+                        currentDate.getFullYear(),
+                        currentDate.getMonth() + 1,
+                        currentDate.getDate()
+                    );
+                    occupancy[formattedDate] = { camereOccupate: 0, ospiti: 0 };
                 }
                 
                 // Per ogni persona
                 data.forEach(person => {
-                    // Estrai anno, mese, giorno dall'arrivo
-                    const arrYear = parseInt(person.dataArrivo.substring(0, 4));
-                    const arrMonth = parseInt(person.dataArrivo.substring(4, 6));
-                    const arrDay = parseInt(person.dataArrivo.substring(6, 8));
+                    // Estrai data di arrivo e partenza
+                    const arrDate = new Date(
+                        parseInt(person.dataArrivo.substring(0, 4)),
+                        parseInt(person.dataArrivo.substring(4, 6)) - 1,
+                        parseInt(person.dataArrivo.substring(6, 8))
+                    );
                     
-                    // Estrai anno, mese, giorno dalla partenza
-                    const depYear = parseInt(person.dataPartenza.substring(0, 4));
-                    const depMonth = parseInt(person.dataPartenza.substring(4, 6));
-                    const depDay = parseInt(person.dataPartenza.substring(6, 8));
+                    const depDate = new Date(
+                        parseInt(person.dataPartenza.substring(0, 4)),
+                        parseInt(person.dataPartenza.substring(4, 6)) - 1,
+                        parseInt(person.dataPartenza.substring(6, 8))
+                    );
                     
-                    // Controlla se il soggiorno ricade nel mese corrente
-                    const isBeforeMonth = (arrYear < parseInt(anno) || (arrYear === parseInt(anno) && arrMonth < parseInt(mese)));
-                    const isAfterMonth = (depYear > parseInt(anno) || (depYear === parseInt(anno) && depMonth > parseInt(mese)));
+                    // Controlla se il soggiorno ricade nel periodo selezionato
+                    const isBeforePeriod = (arrDate <= endDate && arrDate >= startDate);
+                    const isAfterPeriod = (depDate <= endDate && depDate >= startDate);
                     
-                    // Se la persona è arrivata prima del mese ed è partita dopo il mese, è presente tutto il mese
-                    if (isBeforeMonth && isAfterMonth) {
-                        for (let day = 1; day <= daysInMonth; day++) {
-                            const date = formatDate(anno, mese, day);
-                            occupancy[date].ospiti++;
-                            // Solo incrementa camereOccupate per tipi 16, 17, 18
-                            if (['16', '17', '18'].includes(person.tipoAlloggiato)) {
-                                occupancy[date].camereOccupate++;
+                    // Se la persona è arrivata prima del periodo ed è partita dopo il periodo, è presente tutto il periodo
+                    if (isBeforePeriod && isAfterPeriod) {
+                        for (let i = 0; i < daysInPeriod; i++) {
+                            const currentDate = new Date(startDate);
+                            currentDate.setDate(startDate.getDate() + i);
+                            const formattedDate = formatDate(
+                                currentDate.getFullYear(),
+                                currentDate.getMonth() + 1,
+                                currentDate.getDate()
+                            );
+                            if (occupancy[formattedDate]) {
+                                occupancy[formattedDate].ospiti++;
+                                // Solo incrementa camereOccupate per tipi 16, 17, 18
+                                if (['16', '17', '18'].includes(person.tipoAlloggiato)) {
+                                    occupancy[formattedDate].camereOccupate++;
+                                }
                             }
                         }
                     } else {
-                        // Determina il primo giorno del soggiorno nel mese corrente
+                        // Determina il primo giorno del soggiorno nel periodo corrente
                         let startDay = 1;
-                        if (arrYear === parseInt(anno) && arrMonth === parseInt(mese)) {
-                            startDay = arrDay;
+                        if (arrDate >= startDate && arrDate <= endDate) {
+                            startDay = arrDate.getDate();
                         }
                         
-                        // Determina l'ultimo giorno del soggiorno nel mese corrente
-                        let endDay = daysInMonth;
-                        if (depYear === parseInt(anno) && depMonth === parseInt(mese)) {
-                            endDay = depDay - 1; // Escludi il giorno di partenza
+                        // Determina l'ultimo giorno del soggiorno nel periodo corrente
+                        let endDay = daysInPeriod;
+                        if (depDate >= startDate && depDate <= endDate) {
+                            endDay = depDate.getDate() - 1; // Escludi il giorno di partenza
                             // Assicurati che endDay non sia negativo
                             if (endDay < 1) endDay = 1;
                         }
                         
                         // Aggiorna l'occupazione per ogni giorno del soggiorno
-                        for (let day = startDay; day <= endDay; day++) {
-                            const date = formatDate(anno, mese, day);
-                            if (occupancy[date]) {
-                                occupancy[date].ospiti++;
+                        for (let i = startDay; i <= endDay; i++) {
+                            const currentDate = new Date(startDate);
+                            currentDate.setDate(i);
+                            const formattedDate = formatDate(
+                                currentDate.getFullYear(),
+                                currentDate.getMonth() + 1,
+                                currentDate.getDate()
+                            );
+                            if (occupancy[formattedDate]) {
+                                occupancy[formattedDate].ospiti++;
                                 // Solo incrementa camereOccupate per tipi 16, 17, 18
                                 if (['16', '17', '18'].includes(person.tipoAlloggiato)) {
-                                    occupancy[date].camereOccupate++;
+                                    occupancy[formattedDate].camereOccupate++;
                                 }
                             }
                         }
@@ -841,7 +889,9 @@
             document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const index = parseInt(e.target.getAttribute('data-index'));
+                    const fileName = uploadedFiles[index].name;
                     removeFile(index);
+                    showMessage(`File ${fileName} eliminato`, "success");
                 });
             });
         }
@@ -883,11 +933,11 @@
             const a = document.createElement('a');
             
             const codiceStruttura = document.getElementById('codice-struttura').value;
-            const periodo = document.getElementById('periodo').value;
-            const [anno, mese] = periodo.split('-');
+            const startDate = new Date(document.getElementById('periodo-inizio').value);
+            const endDate = new Date(document.getElementById('periodo-fine').value);
             
             a.href = url;
-            a.download = `${codiceStruttura}_${anno}${mese}.xml`;
+            a.download = `${codiceStruttura}_${startDate.toISOString().split('T')[0]}_${endDate.toISOString().split('T')[0]}.xml`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
