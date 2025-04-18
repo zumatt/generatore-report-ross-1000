@@ -690,7 +690,8 @@
                         for (let day = 1; day <= daysInMonth; day++) {
                             const date = formatDate(anno, mese, day);
                             occupancy[date].ospiti++;
-                            if (person.occupaCamera) {
+                            // Solo incrementa camereOccupate per tipi 16, 17, 18
+                            if (['16', '17', '18'].includes(person.tipoAlloggiato)) {
                                 occupancy[date].camereOccupate++;
                             }
                         }
@@ -714,7 +715,8 @@
                             const date = formatDate(anno, mese, day);
                             if (occupancy[date]) {
                                 occupancy[date].ospiti++;
-                                if (person.occupaCamera) {
+                                // Solo incrementa camereOccupate per tipi 16, 17, 18
+                                if (['16', '17', '18'].includes(person.tipoAlloggiato)) {
                                     occupancy[date].camereOccupate++;
                                 }
                             }
