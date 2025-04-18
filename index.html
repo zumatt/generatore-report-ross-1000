@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRoss - Strumento per la Generazione di File XML per OpenRoss</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Generatore XML OpenRoss: strumento online per convertire i file della polizia in formato XML compatibile con OpenRoss. Semplifica la gestione dei dati degli ospiti.">
+    <meta name="keywords" content="OpenRoss, XML, generatore XML, dati ospiti, turismo, alloggiati">
+    <meta name="author" content="zumat">
+    <meta name="robots" content="index, follow">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Generatore XML OpenRoss">
+    <meta property="og:description" content="Strumento online per convertire i file della polizia in formato XML compatibile con OpenRoss">
+    <meta property="og:url" content="https://your-website-url.com">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Generatore XML OpenRoss">
+    <meta name="twitter:description" content="Strumento online per convertire i file della polizia in formato XML compatibile con OpenRoss">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Helvetica, Arial, sans-serif;
+            color: black;
+        }
+        
+        body {
+            background-color: white;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1, h2 {
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            margin-top: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section, .upload-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0066cc;
+            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        }
+        
+        .hidden-input {
+            display: none;
+        }
+        
+        .dropzone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .dropzone:hover, .dropzone.dragover {
+            background-color: #f0f0f0;
+            border-color: #0066cc;
+        }
+        
+        .dropzone-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+        
+        .file-label {
+            display: inline-block;
+            background-color: #0066cc;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        
+        .file-label:hover {
+            background-color: #0055aa;
+        }
+        
+        .file-list {
+            margin-top: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            background-color: white;
+        }
+        
+        .file-item {
+            padding: 10px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-item button {
+            margin: 0;
+            padding: 5px 10px;
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .file-item button:hover {
+            background-color: #ee3333;
+        }
+        
+        .primary-btn {
+            background-color: #0066cc;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 0 auto;
+            min-width: 200px;
+        }
+        
+        .primary-btn:hover {
+            background-color: #0055aa;
+        }
+        
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f5f5f5;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            max-height: 400px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .error {
+            color: #cc0000;
+            padding: 10px;
+            background-color: #ffeeee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .success {
+            color: #00aa00;
+            padding: 10px;
+            background-color: #eeffee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .download-btn {
+            background-color: #00aa00;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+            display: block;
+            margin: 20px auto 0;
+            min-width: 200px;
+        }
+        
+        .download-btn:hover {
+            background-color: #008800;
+        }
+        
+        @media screen and (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .input-section, .upload-section {
+                width: 100%;
+            }
+            
+            .dropzone {
+                padding: 20px;
+            }
+            
+            .primary-btn, .download-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>OpenRoss</h1>
+    
+    <div class="container">
+        <div class="input-section">
+            <h2>Dati struttura</h2>
+            <div class="form-group">
+                <label for="codice-struttura">Codice Struttura:</label>
+                <input type="text" id="codice-struttura" placeholder="A00000" required pattern="[A-Za-z][0-9]{5}">
+            </div>
+            
+            <input type="hidden" id="prodotto" value="OpenRoss">
+            
+            <div class="form-group">
+                <label for="periodo">Periodo:</label>
+                <input type="month" id="periodo" value="2025-01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="camere-disponibili">Numero unità ricettive disponibili:</label>
+                <input type="number" id="camere-disponibili" min="1" value="2" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="letti-disponibili">Numero posti letto disponibili:</label>
+                <input type="number" id="letti-disponibili" min="1" value="9" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="canale-prenotazione">Canale di prenotazione default:</label>
+                <select id="canale-prenotazione" required>
+                    <option value="Diretta tradizionale">Diretta tradizionale</option>
+                    <option value="Diretta web">Diretta web</option>
+                    <option value="Indiretta tradizionale">Indiretta tradizionale</option>
+                    <option value="Indiretta web">Indiretta web</option>
+                    <option value="Altro canale">Altro canale</option>
+                    <option value="Non specificato" selected>Non specificato</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="upload-section">
+            <h2>Caricamento file .txt</h2>
+            <p>Carica i file .txt contenenti i dati inviati alla polizia di stato, generatore disponibile <a href="https://zumatt.github.io/generatore-schedine-alloggiati-web/">qui</a></p>
+            
+            <div class="dropzone" id="drop-zone">
+                <div class="dropzone-content">
+                    <p>Trascina qui i file <i>.txt</i> o</p>
+                    <label for="file-input" class="file-label">Seleziona file</label>
+                    <input type="file" id="file-input" accept=".txt" multiple class="hidden-input">
+                </div>
+            </div>
+            
+            <div class="file-list" id="file-list">
+                <p>Nessun file caricato</p>
+            </div>
+        </div>
+    </div>
+    
+    <button id="generate-btn" class="primary-btn">Genera XML</button>
+    
+    <div class="result-container hidden" id="result-container">
+        <h2>XML Generato</h2>
+        <div id="message-container"></div>
+        <pre id="xml-preview"></pre>
+        <button class="download-btn" id="download-btn">Scarica XML</button>
+    </div>
+
+    <script>
+        // Variabili globali
+        let uploadedFiles = [];
+        let parsedData = [];
+        let generatedXml = '';
+        
+        // Elementi DOM
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const generateBtn = document.getElementById('generate-btn');
+        const resultContainer = document.getElementById('result-container');
+        const xmlPreview = document.getElementById('xml-preview');
+        const downloadBtn = document.getElementById('download-btn');
+        const messageContainer = document.getElementById('message-container');
+        
+        // Funzione per ottenere il numero di giorni in un mese
+        function getDaysInMonth(year, month) {
+            return new Date(year, month, 0).getDate();
+        }
+        
+        // Funzione per formattare la data nel formato YYYYMMDD
+        function formatDate(year, month, day) {
+            return `${year}${month.toString().padStart(2, '0')}${day.toString().padStart(2, '0')}`;
+        }
+        
+        // Funzione per analizzare una riga di testo dal file della polizia
+        function parsePoliceFileLine(line) {
+            if (line.trim() === '') return null;
+            
+            try {
+                // Estrazione dei dati secondo il formato fisso
+                const tipoAlloggiato = line.substring(0, 2);
+                const dataArrivo = line.substring(2, 12); // formato gg/mm/aaaa
+                const giorniPermanenza = parseInt(line.substring(12, 14));
+                const cognome = line.substring(14, 64).trim();
+                const nome = line.substring(64, 94).trim();
+                const sesso = line.substring(94, 95) === '1' ? 'M' : 'F';
+                const dataNascita = line.substring(95, 105); // formato gg/mm/aaaa
+                const comuneNascita = line.substring(105, 114);
+                const provinciaNascita = line.substring(114, 116);
+                const statoNascita = line.substring(116, 125);
+                const cittadinanza = line.substring(125, 134);
+                
+                // Determina se è capo gruppo/famiglia o ospite singolo
+                const isCapoGruppo = (tipoAlloggiato === '16' || tipoAlloggiato === '17' || tipoAlloggiato === '18');
+                // Gli ospiti con codice 19, 20 sono membri del gruppo/famiglia
+                const isComponenteGruppo = (tipoAlloggiato === '19' || tipoAlloggiato === '20');
+                
+                // Calcolo data di partenza (data arrivo + giorni permanenza)
+                const arrParts = dataArrivo.split('/');
+                const arrDay = parseInt(arrParts[0]);
+                const arrMonth = parseInt(arrParts[1]);
+                const arrYear = parseInt(arrParts[2]);
+                
+                // Data arrivo in formato YYYYMMDD
+                const dataArrivoYMD = formatDate(arrYear, arrMonth, arrDay);
+                
+                // Calcolo data partenza
+                const depDate = new Date(arrYear, arrMonth - 1, arrDay + giorniPermanenza);
+                const depYear = depDate.getFullYear();
+                const depMonth = depDate.getMonth() + 1;
+                const depDay = depDate.getDate();
+                
+                // Data partenza in formato YYYYMMDD
+                const dataPartenzaYMD = formatDate(depYear, depMonth, depDay);
+                
+                // Data nascita in formato YYYYMMDD
+                const birthParts = dataNascita.split('/');
+                const birthYear = parseInt(birthParts[2]);
+                const birthMonth = parseInt(birthParts[1]);
+                const birthDay = parseInt(birthParts[0]);
+                const dataNascitaYMD = formatDate(birthYear, birthMonth, birthDay);
+                
+                // Genera un ID univoco che useremmo anche come ID capo per i membri del gruppo
+                const idswh = `GUEST_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                
+                // Canale di prenotazione default
+                const canalePrenotazione = document.getElementById('canale-prenotazione').value;
+                
+                // Creazione oggetto con i dati
+                return {
+                    tipoAlloggiato,
+                    dataArrivo: dataArrivoYMD,
+                    dataPartenza: dataPartenzaYMD,
+                    giorniPermanenza,
+                    cognome,
+                    nome,
+                    sesso,
+                    dataNascita: dataNascitaYMD,
+                    comuneNascita,
+                    statoNascita,
+                    cittadinanza,
+                    idswh,
+                    idcapo: "", // Sarà popolato in seguito per i membri del gruppo
+                    luogoresidenza: comuneNascita, // Assumiamo che sia lo stesso del comune di nascita
+                    statoresidenza: statoNascita, // Assumiamo che sia lo stesso dello stato di nascita
+                    tipoturismo: "Non specificato",
+                    mezzotrasporto: "Non specificato",
+                    canaleprenotazione: canalePrenotazione,
+                    isCapoGruppo,
+                    isComponenteGruppo,
+                    occupaCamera: isCapoGruppo || !isComponenteGruppo // Solo capi gruppo o ospiti singoli occupano una camera
+                };
+            } catch (error) {
+                console.error("Errore nell'analisi della riga:", line, error);
+                return null;
+            }
+        }
+        
+        // Funzione per raggruppare i dati per data di arrivo
+        function groupDataByArrivalDate(data) {
+            const grouped = {};
+            
+            data.forEach(item => {
+                if (!grouped[item.dataArrivo]) {
+                    grouped[item.dataArrivo] = {
+                        arrivi: []
+                    };
+                }
+                
+                grouped[item.dataArrivo].arrivi.push(item);
+            });
+            
+            return grouped;
+        }
+        
+        // Funzione per raggruppare i dati per data di partenza
+        function groupDataByDepartureDate(data) {
+            const grouped = {};
+            
+            data.forEach(item => {
+                if (!grouped[item.dataPartenza]) {
+                    grouped[item.dataPartenza] = {
+                        partenze: []
+                    };
+                }
+                
+                grouped[item.dataPartenza].partenze.push({
+                    idswh: item.idswh,
+                    tipoalloggiato: item.tipoAlloggiato,
+                    arrivo: item.dataArrivo
+                });
+            });
+            
+            return grouped;
+        }
+        
+        // Funzione per filtrare i dati in base al mese e anno selezionati
+        function filterDataByMonth(data, year, month) {
+            return data.filter(item => {
+                // Verifica se l'arrivo o la partenza sono nel mese selezionato
+                // o se il soggiorno include il mese selezionato
+                
+                const arrYear = parseInt(item.dataArrivo.substring(0, 4));
+                const arrMonth = parseInt(item.dataArrivo.substring(4, 6));
+                
+                const depYear = parseInt(item.dataPartenza.substring(0, 4));
+                const depMonth = parseInt(item.dataPartenza.substring(4, 6));
+                
+                // Caso 1: L'arrivo è nel mese selezionato
+                const arrivoNelMese = (arrYear === parseInt(year) && arrMonth === parseInt(month));
+                
+                // Caso 2: La partenza è nel mese selezionato
+                const partenzaNelMese = (depYear === parseInt(year) && depMonth === parseInt(month));
+                
+                // Caso 3: Il soggiorno include il mese selezionato
+                const includeIlMese = (
+                    (arrYear < parseInt(year) || (arrYear === parseInt(year) && arrMonth <= parseInt(month))) &&
+                    (depYear > parseInt(year) || (depYear === parseInt(year) && depMonth >= parseInt(month)))
+                );
+                
+                return arrivoNelMese || partenzaNelMese || includeIlMese;
+            });
+        }
+        
+        // Funzione per generare il XML
+        function generateXML() {
+            try {
+                const codiceStruttura = document.getElementById('codice-struttura').value;
+                const prodotto = document.getElementById('prodotto').value;
+                const periodo = document.getElementById('periodo').value;
+                const camereDisponibili = parseInt(document.getElementById('camere-disponibili').value);
+                const lettiDisponibili = parseInt(document.getElementById('letti-disponibili').value);
+                
+                // Estrai mese e anno dal periodo
+                const [anno, mese] = periodo.split('-');
+                
+                if (!codiceStruttura || !codiceStruttura.match(/^[A-Za-z][0-9]{5}$/)) {
+                    showMessage("Il codice struttura deve essere nel formato A00000", "error");
+                    return;
+                }
+                
+                if (parsedData.length === 0) {
+                    showMessage("Nessun dato trovato nei file caricati", "error");
+                    return;
+                }
+                
+                // Filtra i dati per il mese selezionato
+                const filteredData = filterDataByMonth(parsedData, anno, mese);
+                
+                // Assegna gli ID capo ai membri del gruppo
+                assignGroupLeaders(filteredData);
+                
+                // Numero di giorni nel mese
+                const daysInMonth = getDaysInMonth(parseInt(anno), parseInt(mese));
+                
+                // Inizia a costruire l'XML
+                let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+                xml += '<movimenti>\n';
+                xml += `  <codice>${codiceStruttura}</codice>\n`;
+                xml += `  <prodotto>${prodotto}</prodotto>\n`;
+                
+                // Raggruppa i dati per data di arrivo e partenza
+                const arriviByDate = groupDataByArrivalDate(filteredData);
+                const partenzeByDate = groupDataByDepartureDate(filteredData);
+                
+                // Calcola l'occupazione delle camere per ogni giorno del mese
+                const dailyOccupancy = calculateDailyOccupancy(filteredData, anno, mese, daysInMonth);
+                
+                // Genera un movimento per ogni giorno del mese
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const currentDate = formatDate(anno, mese, day);
+                    
+                    // Ottieni l'occupazione per questo giorno
+                    const occupancy = dailyOccupancy[currentDate] || { camereOccupate: 0, ospiti: 0 };
+                    
+                    xml += `  <movimento>\n`;
+                    xml += `    <data>${currentDate}</data>\n`;
+                    xml += `    <struttura>\n`;
+                    xml += `      <apertura>SI</apertura>\n`;
+                    xml += `      <camereoccupate>${occupancy.camereOccupate}</camereoccupate>\n`;
+                    xml += `      <cameredisponibili>${camereDisponibili}</cameredisponibili>\n`;
+                    xml += `      <lettidisponibili>${lettiDisponibili}</lettidisponibili>\n`;
+                    xml += `    </struttura>\n`;
+                    
+                    // Aggiungi gli arrivi per questa data se ce ne sono
+                    if (arriviByDate[currentDate] && arriviByDate[currentDate].arrivi.length > 0) {
+                        xml += `    <arrivi>\n`;
+                        
+                        arriviByDate[currentDate].arrivi.forEach(arrivo => {
+                            xml += `      <arrivo>\n`;
+                            xml += `        <idswh>${arrivo.idswh}</idswh>\n`;
+                            xml += `        <tipoalloggiato>${arrivo.tipoAlloggiato}</tipoalloggiato>\n`;
+                            xml += `        <idcapo>${arrivo.idcapo || ""}</idcapo>\n`;
+                            xml += `        <cognome>${arrivo.cognome}</cognome>\n`;
+                            xml += `        <nome>${arrivo.nome}</nome>\n`;
+                            xml += `        <sesso>${arrivo.sesso}</sesso>\n`;
+                            xml += `        <cittadinanza>${arrivo.cittadinanza}</cittadinanza>\n`;
+                            xml += `        <statoresidenza>${arrivo.statoresidenza}</statoresidenza>\n`;
+                            xml += `        <luogoresidenza>${arrivo.luogoresidenza}</luogoresidenza>\n`;
+                            xml += `        <datanascita>${arrivo.dataNascita}</datanascita>\n`;
+                            xml += `        <statonascita>${arrivo.statoNascita}</statonascita>\n`;
+                            xml += `        <comunenascita>${arrivo.comuneNascita}</comunenascita>\n`;
+                            xml += `        <tipoturismo>${arrivo.tipoturismo}</tipoturismo>\n`;
+                            xml += `        <mezzotrasporto>${arrivo.mezzotrasporto}</mezzotrasporto>\n`;
+                            xml += `        <canaleprenotazione>${arrivo.canaleprenotazione}</canaleprenotazione>\n`;
+                            xml += `        <titolostudio></titolostudio>\n`;
+                            xml += `        <professione></professione>\n`;
+                            xml += `        <esenzioneimposta></esenzioneimposta>\n`;
+                            xml += `      </arrivo>\n`;
+                        });
+                        
+                        xml += `    </arrivi>\n`;
+                    }
+                    
+                    // Aggiungi le partenze per questa data se ce ne sono
+                    if (partenzeByDate[currentDate] && partenzeByDate[currentDate].partenze.length > 0) {
+                        xml += `    <partenze>\n`;
+                        
+                        partenzeByDate[currentDate].partenze.forEach(partenza => {
+                            xml += `      <partenza>\n`;
+                            xml += `        <idswh>${partenza.idswh}</idswh>\n`;
+                            xml += `        <tipoalloggiato>${partenza.tipoalloggiato}</tipoalloggiato>\n`;
+                            xml += `        <arrivo>${partenza.arrivo}</arrivo>\n`;
+                            xml += `      </partenza>\n`;
+                        });
+                        
+                        xml += `    </partenze>\n`;
+                    }
+                    
+                    xml += `  </movimento>\n`;
+                }
+                
+                xml += '</movimenti>';
+                
+                generatedXml = xml;
+                xmlPreview.textContent = xml;
+                resultContainer.classList.remove('hidden');
+                showMessage("XML generato con successo!", "success");
+                
+                // Scroll to result container
+                resultContainer.scrollIntoView({ behavior: 'smooth' });
+            } catch (error) {
+                console.error("Errore durante la generazione XML:", error);
+                showMessage("Errore durante la generazione XML: " + error.message, "error");
+            }
+        }
+        
+        // Funzione per assegnare gli ID capo ai membri del gruppo
+        function assignGroupLeaders(data) {
+            try {
+                // Prima identifica tutti i capi gruppo
+                const capiGruppo = data.filter(item => item.isCapoGruppo);
+                
+                // Poi, per ogni membro del gruppo, trova il capo corrispondente
+                // (per semplicità assegniamo in base alla stessa data di arrivo e partenza)
+                data.forEach(item => {
+                    if (item.isComponenteGruppo) {
+                        // Cerca un capo con la stessa data di arrivo e partenza
+                        const capo = capiGruppo.find(
+                            c => c.dataArrivo === item.dataArrivo && 
+                                 c.dataPartenza === item.dataPartenza
+                        );
+                        
+                        if (capo) {
+                            item.idcapo = capo.idswh;
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Errore in assignGroupLeaders:", error);
+            }
+        }
+        
+        // Funzione per calcolare l'occupazione giornaliera
+        function calculateDailyOccupancy(data, anno, mese, daysInMonth) {
+            try {
+                const occupancy = {};
+                
+                // Inizializza l'occupazione per ogni giorno del mese
+                for (let day = 1; day <= daysInMonth; day++) {
+                    const date = formatDate(anno, mese, day);
+                    occupancy[date] = { camereOccupate: 0, ospiti: 0 };
+                }
+                
+                // Per ogni persona
+                data.forEach(person => {
+                    // Estrai anno, mese, giorno dall'arrivo
+                    const arrYear = parseInt(person.dataArrivo.substring(0, 4));
+                    const arrMonth = parseInt(person.dataArrivo.substring(4, 6));
+                    const arrDay = parseInt(person.dataArrivo.substring(6, 8));
+                    
+                    // Estrai anno, mese, giorno dalla partenza
+                    const depYear = parseInt(person.dataPartenza.substring(0, 4));
+                    const depMonth = parseInt(person.dataPartenza.substring(4, 6));
+                    const depDay = parseInt(person.dataPartenza.substring(6, 8));
+                    
+                    // Controlla se il soggiorno ricade nel mese corrente
+                    const isBeforeMonth = (arrYear < parseInt(anno) || (arrYear === parseInt(anno) && arrMonth < parseInt(mese)));
+                    const isAfterMonth = (depYear > parseInt(anno) || (depYear === parseInt(anno) && depMonth > parseInt(mese)));
+                    
+                    // Se la persona è arrivata prima del mese ed è partita dopo il mese, è presente tutto il mese
+                    if (isBeforeMonth && isAfterMonth) {
+                        for (let day = 1; day <= daysInMonth; day++) {
+                            const date = formatDate(anno, mese, day);
+                            occupancy[date].ospiti++;
+                            if (person.occupaCamera) {
+                                occupancy[date].camereOccupate++;
+                            }
+                        }
+                    } else {
+                        // Determina il primo giorno del soggiorno nel mese corrente
+                        let startDay = 1;
+                        if (arrYear === parseInt(anno) && arrMonth === parseInt(mese)) {
+                            startDay = arrDay;
+                        }
+                        
+                        // Determina l'ultimo giorno del soggiorno nel mese corrente
+                        let endDay = daysInMonth;
+                        if (depYear === parseInt(anno) && depMonth === parseInt(mese)) {
+                            endDay = depDay - 1; // Escludi il giorno di partenza
+                            // Assicurati che endDay non sia negativo
+                            if (endDay < 1) endDay = 1;
+                        }
+                        
+                        // Aggiorna l'occupazione per ogni giorno del soggiorno
+                        for (let day = startDay; day <= endDay; day++) {
+                            const date = formatDate(anno, mese, day);
+                            if (occupancy[date]) {
+                                occupancy[date].ospiti++;
+                                if (person.occupaCamera) {
+                                    occupancy[date].camereOccupate++;
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                return occupancy;
+            } catch (error) {
+                console.error("Errore in calculateDailyOccupancy:", error);
+                return {};
+            }
+        }
+        
+        // Funzione per mostrare messaggi
+        function showMessage(message, type) {
+            messageContainer.innerHTML = `<div class="${type}">${message}</div>`;
+        }
+        
+        // Event Listeners
+        // Event listeners per il drag and drop
+        const dropZone = document.getElementById('drop-zone');
+        
+        // Previeni il comportamento di default per i vari eventi di drag
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        // Aggiungi e rimuovi la classe highlight
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+        
+        function highlight() {
+            dropZone.classList.add('dragover');
+        }
+        
+        function unhighlight() {
+            dropZone.classList.remove('dragover');
+        }
+        
+        // Gestisci il drop dei file
+        dropZone.addEventListener('drop', handleDrop, false);
+        
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+        
+        // Gestione file caricati (sia da drag&drop che da file input)
+        function handleFiles(files) {
+            if (files.length === 0) return;
+            
+            // Aggiungi i file alla lista
+            Array.from(files).forEach(file => {
+                if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
+                    uploadedFiles.push(file);
+                    
+                    // Leggi il file
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        const lines = content.split('\n');
+                        
+                        lines.forEach((line, index) => {
+                            if (line.trim().length > 0) {
+                                try {
+                                    const parsedLine = parsePoliceFileLine(line);
+                                    if (parsedLine) {
+                                        parsedData.push(parsedLine);
+                                    }
+                                } catch (error) {
+                                    console.error("Errore nel parsing della riga:", error);
+                                }
+                            }
+                        });
+                        
+                        // Mostra quanti elementi sono stati caricati
+                        showMessage(`Caricati ${parsedData.length} alloggiati da ${uploadedFiles.length} file`, "success");
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // Aggiorna la lista dei file visibili
+            updateFileList();
+        }
+        
+        // Collega l'input file alla funzione handleFiles
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+        
+        // Funzione per aggiornare la lista dei file
+        function updateFileList() {
+            if (uploadedFiles.length === 0) {
+                fileList.innerHTML = '<p>Nessun file caricato</p>';
+                return;
+            }
+            
+            fileList.innerHTML = '';
+            uploadedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>${file.name}</span>
+                    <button class="remove-btn" data-index="${index}">Rimuovi</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+            
+            // Aggiungi event listener ai pulsanti di rimozione
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const index = parseInt(e.target.getAttribute('data-index'));
+                    removeFile(index);
+                });
+            });
+        }
+        
+        // Funzione per rimuovere un file
+        function removeFile(index) {
+            uploadedFiles.splice(index, 1);
+            
+            // Resetta i dati analizzati e rileggi tutti i file
+            parsedData = [];
+            uploadedFiles.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const content = e.target.result;
+                    const lines = content.split('\n');
+                    
+                    lines.forEach(line => {
+                        const parsedLine = parsePoliceFileLine(line);
+                        if (parsedLine) {
+                            parsedData.push(parsedLine);
+                        }
+                    });
+                };
+                reader.readAsText(file);
+            });
+            
+            updateFileList();
+        }
+        
+        // Event listener per il pulsante di generazione
+        generateBtn.addEventListener('click', generateXML);
+        
+        // Event listener per il pulsante di download
+        downloadBtn.addEventListener('click', () => {
+            if (!generatedXml) return;
+            
+            const blob = new Blob([generatedXml], { type: 'application/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            const codiceStruttura = document.getElementById('codice-struttura').value;
+            const periodo = document.getElementById('periodo').value;
+            const [anno, mese] = periodo.split('-');
+            
+            a.href = url;
+            a.download = `${codiceStruttura}_${anno}${mese}.xml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        
+        // Inizializza la lista dei file
+        updateFileList();
+    </script>
+</body>
+</html>
