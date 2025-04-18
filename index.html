@@ -407,8 +407,8 @@
                 const birthDay = parseInt(birthParts[0]);
                 const dataNascitaYMD = formatDate(birthYear, birthMonth, birthDay);
                 
-                // Genera un ID univoco che useremmo anche come ID capo per i membri del gruppo
-                const idswh = `GUEST_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                // Genera un ID univoco basato su cognome, nome, data di nascita e giorno di arrivo
+                const idswh = `${cognome}_${nome}_${dataNascitaYMD}_${dataArrivoYMD}`;
                 
                 // Canale di prenotazione default
                 const canalePrenotazione = document.getElementById('canale-prenotazione').value;
